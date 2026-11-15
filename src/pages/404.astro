@@ -1,0 +1,33 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Not found">
+  <section class="container nf">
+    <p class="mono muted">Error 404</p>
+    <h1>Nothing at this address<span class="mark" aria-hidden="true"></span></h1>
+    <p>The page moved or never existed. The index lists everything on this site.</p>
+    <p><a class="link link-primary" href="/#work">Back to the index <span class="arrow" aria-hidden="true">→</span></a></p>
+  </section>
+</Base>
+
+<style>
+  .nf {
+    display: grid;
+    gap: 16px;
+    padding-block: clamp(64px, 12vw, 160px);
+  }
+
+  h1 {
+    font-size: var(--text-title);
+    line-height: var(--leading-tight);
+    letter-spacing: var(--tracking-name);
+    max-width: 14ch;
+  }
+
+  h1 .mark {
+    width: 0.36em;
+    height: 0.4em;
+    margin-left: 0.08em;
+  }
+</style>

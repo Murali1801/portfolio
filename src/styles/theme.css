@@ -1,0 +1,105 @@
+/*
+ * theme.css: the only file you need to restyle the template.
+ * Colours, type, spacing, grid and motion are all tokens.
+ * Light values sit on :root, dark values in the two blocks below
+ * (system preference, then the manual toggle).
+ */
+
+:root {
+  /* Brand palette */
+  --c-paper: #f3f0e8;
+  --c-night: #121210;
+  --c-ink: #16150f;
+  --c-stone: #6e6a62;
+  --c-cobalt: #2747d9;
+  --c-cobalt-dark: #7b93ff;
+  --c-signal: #f6d21f;
+
+  /* Roles: light */
+  --bg: var(--c-paper);
+  --surface: #ebe7dc;
+  --surface-2: #e4dfd2;
+  --fg: var(--c-ink);
+  --muted: #615d55;
+  --rule: #d9d4c8;
+  --rule-strong: #b9b3a5;
+  --accent: var(--c-cobalt);
+  --accent-fg: #ffffff;
+  --mark: var(--c-signal);
+  --mark-edge: var(--c-ink);
+  --on-mark: var(--c-ink);
+  --selection: var(--c-signal);
+  --spec-col: rgb(39 71 217 / 0.06);
+  --spec-line: rgb(39 71 217 / 0.28);
+  --spec-base: rgb(39 71 217 / 0.12);
+  --focus: var(--c-cobalt);
+  color-scheme: light;
+
+  /* Type */
+  --font-sans: 'Schibsted Grotesk', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', Menlo, Consolas, monospace;
+  --text-name: clamp(3.5rem, 1.6rem + 8.4vw, 7.5rem);
+  --text-title: clamp(2.75rem, 1.6rem + 5vw, 5.5rem);
+  --text-h2: clamp(1.5rem, 1.2rem + 1.2vw, 2rem);
+  --text-row: clamp(1.375rem, 1.1rem + 1vw, 1.875rem);
+  --text-lede: clamp(1.1875rem, 1.05rem + 0.5vw, 1.375rem);
+  --text-body: 1.0625rem;
+  --text-small: 0.9375rem;
+  --text-meta: 0.75rem;
+  --leading-body: 1.65;
+  --leading-tight: 0.95;
+  --tracking-name: -0.035em;
+  --tracking-meta: 0.06em;
+
+  /* Layout: 12 columns, 8px baseline */
+  --page-max: 1320px;
+  --page-pad: clamp(16px, 4vw, 48px);
+  --cols: 12;
+  --col-gap: clamp(12px, 2vw, 24px);
+  --baseline: 8px;
+  --measure: 680px;
+  --radius: 2px;
+
+  /* Motion */
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dur: 220ms;
+  --dur-fast: 140ms;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: var(--c-night);
+    --surface: #1a1a17;
+    --surface-2: #22221e;
+    --fg: #ece9e1;
+    --muted: #a19c92;
+    --rule: #2a2925;
+    --rule-strong: #45433d;
+    --accent: var(--c-cobalt-dark);
+    --accent-fg: var(--c-night);
+    --mark-edge: transparent;
+    --spec-col: rgb(123 147 255 / 0.07);
+    --spec-line: rgb(123 147 255 / 0.32);
+    --spec-base: rgb(123 147 255 / 0.13);
+    --focus: var(--c-cobalt-dark);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --bg: var(--c-night);
+  --surface: #1a1a17;
+  --surface-2: #22221e;
+  --fg: #ece9e1;
+  --muted: #a19c92;
+  --rule: #2a2925;
+  --rule-strong: #45433d;
+  --accent: var(--c-cobalt-dark);
+  --accent-fg: var(--c-night);
+  --mark-edge: transparent;
+  --spec-col: rgb(123 147 255 / 0.07);
+  --spec-line: rgb(123 147 255 / 0.32);
+  --spec-base: rgb(123 147 255 / 0.13);
+  --focus: var(--c-cobalt-dark);
+  color-scheme: dark;
+}

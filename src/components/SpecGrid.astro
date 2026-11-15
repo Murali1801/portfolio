@@ -1,0 +1,110 @@
+---
+// The overlay is pure CSS; the script only flips a data attribute on <html>.
+---
+
+<div class="spec" aria-hidden="true">
+  <div class="spec-base"></div>
+  <div class="container spec-cols grid">
+    {Array.from({ length: 12 }, (_, i) => <span class="spec-col" data-i={i + 1}></span>)}
+  </div>
+</div>
+<p class="spec-legend mono" aria-hidden="true">
+  <span class="mark" aria-hidden="true"></span>
+  Spec · <span class="spec-count">12</span> col · 8px baseline · <kbd>G</kbd> to close
+</p>
+
+<script>
+  import { initSpec } from '../scripts/spec';
+  initSpec();
+</script>
+
+<style>
+  .spec {
+    position: absolute;
+    inset: 0;
+    z-index: 50;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 160ms var(--ease),
+      visibility 0s linear 160ms;
+  }
+
+  :global(:root[data-spec]) .spec {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 160ms var(--ease);
+  }
+
+  .spec-base {
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      var(--spec-base) 0,
+      var(--spec-base) 1px,
+      transparent 1px,
+      transparent var(--baseline)
+    );
+  }
+
+  .spec-cols {
+    position: relative;
+    height: 100%;
+  }
+
+  .spec-col {
+    grid-column: auto !important;
+    background: var(--spec-col);
+    box-shadow:
+      inset 1px 0 0 var(--spec-line),
+      inset -1px 0 0 var(--spec-line);
+  }
+
+  @media (max-width: 639px) {
+    .spec-col:nth-child(n + 7) {
+      display: none;
+    }
+  }
+
+  .spec-legend {
+    position: fixed;
+    right: 12px;
+    bottom: 12px;
+    z-index: 51;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 6px 10px;
+    background: var(--bg);
+    border: 1px solid var(--spec-line);
+    color: var(--accent);
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(6px);
+    transition:
+      opacity 160ms var(--ease),
+      transform 160ms var(--ease);
+  }
+
+  :global(:root[data-spec]) .spec-legend {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (max-width: 639px) {
+    .spec-count::before {
+      content: '6';
+    }
+
+    .spec-count {
+      font-size: 0;
+    }
+
+    .spec-count::before {
+      font-size: var(--text-meta);
+    }
+  }
+</style>

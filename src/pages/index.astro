@@ -1,0 +1,252 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Clock from '../components/Clock.astro';
+import ProjectIndex from '../components/ProjectIndex.astro';
+import { site } from '../../site.config';
+
+const projects = (await getCollection('projects', (p) => !p.data.draft)).sort((a, b) => a.data.order - b.data.order);
+const [first, ...rest] = site.name.split(' ');
+const count = String(projects.length).padStart(2, '0');
+---
+
+<Base>
+  <section class="hero container" aria-labelledby="name">
+    <div class="grid hero-grid">
+      <h1 class="name" id="name">
+        <span>{first}</span>
+        {rest.length > 0 && <span>{rest.join(' ')}<span class="mark name-mark" aria-hidden="true"></span></span>}
+      </h1>
+      <p class="intro">{site.intro}</p>
+      <dl class="facts mono">
+        <div>
+          <dt>Role</dt>
+          <dd>{site.role}</dd>
+        </div>
+        <div>
+          <dt>Based in</dt>
+          <dd>{site.location}</dd>
+        </div>
+        <div>
+          <dt>Local time</dt>
+          <dd><Clock /></dd>
+        </div>
+        <div>
+          <dt>Code</dt>
+          <dd><a href={`https://github.com/${site.github.user}`}>github.com/{site.github.user}</a></dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <section id="work" class="container work" aria-labelledby="work-title">
+    <header class="section-head grid">
+      <h2 class="section-title" id="work-title">Index</h2>
+      <p class="section-note mono muted">{count} projects · open a row for a live demo · <kbd>G</kbd> spec mode</p>
+    </header>
+    <ProjectIndex projects={projects} />
+  </section>
+
+  <section id="about" class="container about" aria-labelledby="about-title">
+    <header class="section-head grid">
+      <h2 class="section-title" id="about-title">{site.about.heading}</h2>
+    </header>
+    <div class="grid about-grid">
+      {
+        site.avatar && (
+          <figure class="avatar">
+            <img
+              src={site.avatar.src}
+              alt={site.avatar.alt}
+              width="128"
+              height="128"
+              loading="lazy"
+              decoding="async"
+              class:list={{ pixelated: site.avatar.pixelated }}
+            />
+            <figcaption class="mono muted">Fig. 01 · self-portrait, 64 × 64 px</figcaption>
+          </figure>
+        )
+      }
+      <div class="about-copy">
+        {site.about.paragraphs.map((p) => <p>{p}</p>)}
+      </div>
+      <div class="about-stack">
+        <h3 class="mono muted">Works with</h3>
+        <ul>
+          {
+            site.about.stack.map((s) => (
+              <li>
+                <span class="mark" aria-hidden="true" />
+                {s}
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero {
+    padding-block: clamp(40px, 7vw, 88px) clamp(32px, 5vw, 56px);
+  }
+
+  .hero-grid {
+    row-gap: 32px;
+  }
+
+  .name {
+    display: flex;
+    flex-direction: column;
+    font-size: var(--text-name);
+    font-weight: 700;
+    line-height: var(--leading-tight);
+    letter-spacing: var(--tracking-name);
+    margin-left: -0.04em;
+  }
+
+  .name-mark {
+    width: 0.36em;
+    height: 0.4em;
+    margin-left: 0.08em;
+  }
+
+  .intro {
+    font-size: var(--text-lede);
+    line-height: 1.45;
+    max-width: 34ch;
+    text-wrap: pretty;
+  }
+
+  .facts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 24px;
+    align-content: start;
+  }
+
+  .facts dt {
+    color: var(--muted);
+  }
+
+  .facts dd {
+    margin: 2px 0 0;
+    color: var(--fg);
+    text-transform: none;
+    letter-spacing: 0.01em;
+    font-size: 0.8125rem;
+  }
+
+  .facts dd a {
+    display: inline-block;
+    padding-block: 13px;
+    margin-block: -13px;
+    text-decoration: underline;
+    text-decoration-color: var(--rule-strong);
+  }
+
+  .facts dd a:hover {
+    text-decoration-color: currentColor;
+  }
+
+  @media (min-width: 768px) {
+    .intro {
+      grid-column: 1 / span 6;
+    }
+
+    .facts {
+      grid-column: 8 / span 5;
+    }
+  }
+
+  /* About */
+  .about {
+    margin-top: 64px;
+  }
+
+  .about-grid {
+    padding-top: 32px;
+    row-gap: 32px;
+  }
+
+  .avatar {
+    display: grid;
+    gap: 12px;
+    justify-items: start;
+    align-content: start;
+  }
+
+  .avatar img {
+    width: 128px;
+    height: 128px;
+    box-shadow: 0 0 0 1px var(--c-ink);
+  }
+
+  .pixelated {
+    image-rendering: pixelated;
+  }
+
+  .about-copy {
+    display: grid;
+    gap: 16px;
+    font-size: var(--text-lede);
+    line-height: 1.5;
+    max-width: 40ch;
+    text-wrap: pretty;
+  }
+
+  .about-copy p + p {
+    font-size: var(--text-body);
+    line-height: var(--leading-body);
+    color: var(--muted);
+  }
+
+  .about-stack h3 {
+    font-weight: 400;
+    margin-bottom: 12px;
+  }
+
+  .about-stack ul {
+    display: grid;
+    gap: 4px;
+  }
+
+  .about-stack li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+  }
+
+  .about-stack .mark {
+    width: 7px;
+    height: 7px;
+  }
+
+  @media (min-width: 768px) {
+    .avatar {
+      grid-column: 1 / span 3;
+    }
+
+    .about-copy {
+      grid-column: 4 / span 5;
+    }
+
+    .about-stack {
+      grid-column: 10 / span 3;
+    }
+  }
+
+  @media (min-width: 768px) and (max-width: 1023px) {
+    .about-copy {
+      grid-column: 4 / span 9;
+    }
+
+    .about-stack {
+      grid-column: 4 / span 9;
+    }
+  }
+</style>

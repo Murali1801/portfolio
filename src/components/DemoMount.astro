@@ -1,0 +1,46 @@
+---
+import '../styles/demos.css';
+
+interface Props {
+  demo: string;
+  label?: string;
+  title: string;
+  /** "open": mounted by an index row when it opens. "visible": mounted when scrolled into view. */
+  load?: 'open' | 'visible';
+}
+
+const { demo, label, title, load = 'open' } = Astro.props;
+---
+
+<figure class="demo-frame">
+  <figcaption class="demo-bar mono">
+    <span class="demo-live"><span class="mark" aria-hidden="true"></span> Live demo</span>
+    <span class="demo-label">{label ?? title}</span>
+  </figcaption>
+  <div class="demo" data-demo={demo} data-load={load}>
+    <p class="demo-fallback muted" data-demo-fallback>
+      <span class="mark is-loading" aria-hidden="true"></span>
+      <noscript>This demo needs JavaScript. </noscript>
+      <span class="sr-only">Loading the {title} demo</span>
+    </p>
+  </div>
+</figure>
+
+<script>
+  import { mountDemo } from '../demos/index';
+
+  const lazy = [...document.querySelectorAll<HTMLElement>('.demo[data-load="visible"]')];
+  if (lazy.length) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          io.unobserve(e.target);
+          void mountDemo(e.target as HTMLElement);
+        }
+      },
+      { rootMargin: '200px 0px' },
+    );
+    lazy.forEach((el) => io.observe(el));
+  }
+</script>

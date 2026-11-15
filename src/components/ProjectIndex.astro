@@ -1,0 +1,508 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import DemoMount from './DemoMount.astro';
+import { liveUrl, repoUrl, site } from '../../site.config';
+import { getStars, starLabel, type Stars } from '../lib/github';
+
+interface Props {
+  projects: CollectionEntry<'projects'>[];
+}
+
+const { projects } = Astro.props;
+const token = import.meta.env.GITHUB_TOKEN as string | undefined;
+
+const rows = await Promise.all(
+  projects.map(async (p, i) => {
+    const d = p.data;
+    const stars: Stars = d.repo
+      ? await getStars(site.github.user, d.repo, { enabled: site.stars.fetch, timeoutMs: site.stars.timeoutMs, token })
+      : null;
+    const status = d.status ?? starLabel(stars);
+    const live = d.live === false ? null : (d.live ?? (d.repo ? liveUrl(d.repo) : null));
+    return {
+      id: p.id,
+      no: String(i + 1).padStart(2, '0'),
+      d,
+      status,
+      isNew: !d.status && stars === null,
+      live,
+      source: d.repo ? repoUrl(d.repo) : null,
+    };
+  }),
+);
+const kindLabel = (k: string) => k.charAt(0).toUpperCase() + k.slice(1);
+---
+
+<div class="index">
+  <div class="index-head grid mono muted" aria-hidden="true">
+    <span class="c-no">No.</span>
+    <span class="c-name">Project</span>
+    <span class="c-kind">Kind</span>
+    <span class="c-stack">Stack</span>
+    <span class="c-status">Status</span>
+    <span class="c-year">Year</span>
+  </div>
+  <ol class="rows">
+    {
+      rows.map((r) => (
+        <li class="row" id={r.id}>
+          <h3 class="row-h">
+            <button class="row-btn grid" type="button" aria-expanded="false" aria-controls={`panel-${r.id}`} id={`btn-${r.id}`}>
+              <span class="c-no mono">{r.no}</span>{' '}
+              <span class="c-name">{r.d.title}</span><span class="sr-only">, </span>
+              <span class="c-kind mono">
+                <span class="sr-only">Kind: </span>
+                {kindLabel(r.d.kind)}
+              </span><span class="sr-only">, </span>
+              <span class="c-stack mono">
+                <span class="sr-only">Stack: </span>
+                {r.d.stack.join(', ')}
+              </span><span class="sr-only">, </span>
+              <span class="c-status mono">
+                <span class="sr-only">Status: </span>
+                {r.isNew ? <span class="badge">new</span> : r.status}
+              </span><span class="sr-only">, </span>
+              <span class="c-year mono">
+                <span class="sr-only">Year: </span>
+                {r.d.year}
+              </span>
+              <span class="c-icon" aria-hidden="true" />
+            </button>
+          </h3>
+          <div class="panel" id={`panel-${r.id}`} role="region" aria-labelledby={`btn-${r.id}`}>
+            <div class="panel-clip">
+              <div class="panel-grid grid">
+                <div class="panel-demo">
+                  {r.d.demo !== 'none' && <DemoMount demo={r.d.demo} label={r.d.demoLabel} title={r.d.title} load="open" />}
+                </div>
+                <div class="panel-aside">
+                  <p class="panel-summary">{r.d.summary}</p>
+                  <dl class="panel-facts mono">
+                    <div>
+                      <dt>Role</dt>
+                      <dd>{r.d.role}</dd>
+                    </div>
+                    <div class="fact-stack">
+                      <dt>Stack</dt>
+                      <dd>{r.d.stack.join(', ')}</dd>
+                    </div>
+                    <div>
+                      <dt>Timeline</dt>
+                      <dd>{r.d.timeline}</dd>
+                    </div>
+                  </dl>
+                  <ul class="panel-links">
+                    <li>
+                      <a class="link link-primary" href={`/work/${r.id}`}>
+                        Read the case study <span class="arrow" aria-hidden="true">→</span>
+                      </a>
+                    </li>
+                    {r.live && (
+                      <li>
+                        <a class="link mono" href={r.live}>
+                          Live <span class="arrow-ne" aria-hidden="true">↗</span>
+                        </a>
+                      </li>
+                    )}
+                    {r.source && (
+                      <li>
+                        <a class="link mono" href={r.source}>
+                          Source <span class="arrow-ne" aria-hidden="true">↗</span>
+                        </a>
+                      </li>
+                    )}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </li>
+      ))
+    }
+  </ol>
+</div>
+
+<script>
+  import { mountDemo } from '../demos/index';
+
+  const rows = [...document.querySelectorAll<HTMLLIElement>('.rows .row')];
+
+  function setOpen(row: HTMLLIElement, open: boolean) {
+    const btn = row.querySelector<HTMLButtonElement>('.row-btn');
+    if (!btn) return;
+    btn.setAttribute('aria-expanded', String(open));
+    row.classList.toggle('is-open', open);
+    if (open) {
+      const demo = row.querySelector<HTMLElement>('.demo');
+      if (demo) void mountDemo(demo);
+    }
+  }
+
+  rows.forEach((row) => {
+    row.querySelector('.row-btn')?.addEventListener('click', () => {
+      setOpen(row, !row.classList.contains('is-open'));
+    });
+  });
+
+  // Deep link: /#tonal opens that row.
+  const fromHash = () => {
+    const id = decodeURIComponent(location.hash.slice(1));
+    const row = rows.find((r) => r.id === id);
+    if (row) setOpen(row, true);
+  };
+  window.addEventListener('hashchange', fromHash);
+  fromHash();
+</script>
+
+<style>
+  .index-head {
+    padding-block: 12px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .index-head .c-name {
+    font-size: inherit;
+    font-weight: 400;
+    letter-spacing: inherit;
+    line-height: inherit;
+  }
+
+  .rows {
+    counter-reset: row;
+  }
+
+  .row {
+    border-bottom: 1px solid var(--rule);
+    scroll-margin-top: 16px;
+  }
+
+  .row-h {
+    font: inherit;
+  }
+
+  .row-btn {
+    position: relative;
+    width: 100%;
+    min-height: 72px;
+    padding: 16px 0;
+    border: 0;
+    background: none;
+    text-align: left;
+    align-items: baseline;
+    row-gap: 4px;
+    transition: background-color var(--dur-fast) var(--ease);
+  }
+
+  .row-btn:hover {
+    background: var(--surface);
+  }
+
+  .row-btn:focus-visible {
+    outline-offset: -2px;
+  }
+
+  .c-name {
+    font-size: var(--text-row);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }
+
+  .row-btn .c-no,
+  .row-btn .c-kind,
+  .row-btn .c-stack,
+  .row-btn .c-status,
+  .row-btn .c-year {
+    color: var(--muted);
+  }
+
+  .row-btn .c-status {
+    color: var(--fg);
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 1px 6px;
+    background: var(--mark);
+    color: var(--c-ink);
+    box-shadow: inset 0 0 0 1px var(--mark-edge);
+    line-height: 1.5;
+  }
+
+  .c-icon {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    width: 14px;
+    height: 14px;
+    margin-top: -7px;
+    transition: transform var(--dur) var(--ease);
+  }
+
+  .c-icon::before,
+  .c-icon::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 6.5px;
+    width: 14px;
+    height: 1.5px;
+    background: var(--fg);
+  }
+
+  .c-icon::after {
+    transform: rotate(90deg);
+  }
+
+  .is-open .c-icon {
+    transform: rotate(45deg);
+  }
+
+  .row-btn:hover .c-name,
+  .is-open .c-name {
+    color: var(--accent);
+  }
+
+  /* Expand in place: grid-template-rows 0fr to 1fr. Open by default without JS. */
+  .panel {
+    display: grid;
+    grid-template-rows: 1fr;
+  }
+
+  :global(.js) .panel {
+    grid-template-rows: 0fr;
+    visibility: hidden;
+    transition:
+      grid-template-rows var(--dur) var(--ease),
+      visibility 0s linear var(--dur);
+  }
+
+  :global(.js) .is-open .panel {
+    grid-template-rows: 1fr;
+    visibility: visible;
+    transition:
+      grid-template-rows var(--dur) var(--ease),
+      visibility 0s;
+  }
+
+  .panel-clip {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .panel-grid {
+    padding-block: 8px 32px;
+    row-gap: 24px;
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity var(--dur) var(--ease),
+      transform var(--dur) var(--ease);
+  }
+
+  :global(.js) .row:not(.is-open) .panel-grid {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  .panel-aside {
+    display: grid;
+    gap: 16px;
+    align-content: start;
+  }
+
+  .panel-summary {
+    font-size: var(--text-lede);
+    line-height: 1.45;
+    max-width: 36ch;
+  }
+
+  .panel-facts {
+    display: grid;
+    gap: 8px;
+  }
+
+  .panel-facts div {
+    display: grid;
+    grid-template-columns: 10ch 1fr;
+    gap: 8px;
+  }
+
+  .panel-facts dt {
+    color: var(--muted);
+  }
+
+  .panel-facts dd {
+    margin: 0;
+  }
+
+  .panel-links {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 24px;
+  }
+
+  /* Phone: number, name and icon on line one, the facts on line two. */
+  .row-btn {
+    grid-template-columns: 3ch minmax(0, 1fr) 24px;
+    column-gap: 12px;
+    padding-right: 0;
+  }
+
+  .row-btn > * {
+    grid-column: auto;
+  }
+
+  .row-btn .c-no {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .row-btn .c-name {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .row-btn .c-kind,
+  .row-btn .c-stack,
+  .row-btn .c-status,
+  .row-btn .c-year {
+    grid-row: 2;
+  }
+
+  .row-btn .c-kind {
+    grid-column: 2;
+  }
+
+  .row-btn .c-stack {
+    display: none;
+  }
+
+  .row-btn .c-status {
+    grid-column: 2;
+    justify-self: end;
+  }
+
+  .row-btn .c-year {
+    display: none;
+  }
+
+  .index-head {
+    display: none;
+  }
+
+  @media (min-width: 768px) {
+    .index-head {
+      display: grid;
+    }
+
+    .row-btn {
+      grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+      column-gap: var(--col-gap);
+      align-items: center;
+    }
+
+    .c-no,
+    .row-btn .c-no {
+      grid-column: 1 / span 1;
+      grid-row: 1;
+    }
+
+    .c-name,
+    .row-btn .c-name {
+      grid-column: 2 / span 3;
+      grid-row: 1;
+    }
+
+    .c-kind,
+    .row-btn .c-kind {
+      grid-column: 5 / span 2;
+      grid-row: 1;
+    }
+
+    .c-stack,
+    .row-btn .c-stack {
+      display: block;
+      grid-column: 7 / span 3;
+      grid-row: 1;
+    }
+
+    .c-status,
+    .row-btn .c-status {
+      grid-column: 10 / span 2;
+      grid-row: 1;
+      justify-self: start;
+    }
+
+    .c-year,
+    .row-btn .c-year {
+      display: block;
+      grid-column: 12 / span 1;
+      grid-row: 1;
+    }
+
+    .row-btn,
+    .index-head {
+      padding-right: 32px;
+    }
+
+    .fact-stack {
+      display: none !important;
+    }
+
+    .panel-demo {
+      grid-column: 2 / span 7;
+    }
+
+    .panel-aside {
+      grid-column: 9 / span 4;
+    }
+
+    .panel-grid {
+      padding-block: 8px 40px;
+    }
+  }
+
+  @media (min-width: 768px) and (max-width: 1023px) {
+    .panel-demo {
+      grid-column: 1 / -1;
+    }
+
+    .panel-aside {
+      grid-column: 1 / -1;
+    }
+
+    .c-name,
+    .row-btn .c-name {
+      grid-column: 2 / span 4;
+    }
+
+    .c-kind,
+    .row-btn .c-kind {
+      grid-column: 6 / span 2;
+    }
+
+    .c-stack,
+    .row-btn .c-stack {
+      grid-column: 8 / span 3;
+    }
+
+    .c-status,
+    .row-btn .c-status {
+      grid-column: 11 / span 2;
+    }
+
+    .c-year,
+    .row-btn .c-year {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global(.js) .panel,
+    :global(.js) .is-open .panel,
+    .panel-grid {
+      transition: none;
+    }
+  }
+</style>

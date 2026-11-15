@@ -1,0 +1,46 @@
+---
+import { site } from '../../site.config';
+import { formatUtcOffset, zoneOffsetMinutes } from '../lib/time';
+
+const offset = formatUtcOffset(zoneOffsetMinutes(site.timeZone));
+---
+
+<span class="clock" data-clock data-tz={site.timeZone} data-tz-label={site.timeZoneLabel}>
+  <time class="clock-time" data-clock-time>{site.timeZoneLabel} ({offset})</time>
+  <span class="clock-rel muted" data-clock-rel></span>
+</span>
+
+<script>
+  import { formatClock, relativeToViewer, zoneOffsetMinutes } from '../lib/time';
+
+  document.querySelectorAll<HTMLElement>('[data-clock]').forEach((el) => {
+    const tz = el.dataset.tz ?? 'UTC';
+    const label = el.dataset.tzLabel ?? '';
+    const time = el.querySelector<HTMLTimeElement>('[data-clock-time]');
+    const rel = el.querySelector<HTMLElement>('[data-clock-rel]');
+
+    const tick = () => {
+      const now = new Date();
+      if (time) {
+        time.textContent = `${formatClock(tz, now)} ${label}`;
+        time.dateTime = now.toISOString();
+      }
+      if (rel) rel.textContent = relativeToViewer(zoneOffsetMinutes(tz, now), -now.getTimezoneOffset());
+      // Re-render on the next minute boundary.
+      window.setTimeout(tick, 60_000 - (now.getTime() % 60_000) + 50);
+    };
+    tick();
+  });
+</script>
+
+<style>
+  .clock {
+    display: inline-flex;
+    flex-wrap: wrap;
+    column-gap: 10px;
+  }
+
+  .clock-time {
+    font-variant-numeric: tabular-nums;
+  }
+</style>

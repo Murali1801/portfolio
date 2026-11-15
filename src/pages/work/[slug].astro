@@ -1,0 +1,315 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import DemoMount from '../../components/DemoMount.astro';
+import { liveUrl, repoUrl, site } from '../../../site.config';
+import { getStars, starLabel } from '../../lib/github';
+
+export async function getStaticPaths() {
+  const all = (await getCollection('projects', (p) => !p.data.draft)).sort((a, b) => a.data.order - b.data.order);
+  return all.map((entry, i) => ({
+    params: { slug: entry.id },
+    props: { entry, index: i, next: all[(i + 1) % all.length]! },
+  }));
+}
+
+interface Props {
+  entry: CollectionEntry<'projects'>;
+  index: number;
+  next: CollectionEntry<'projects'>;
+}
+
+const { entry, index, next } = Astro.props;
+const d = entry.data;
+const { Content } = await render(entry);
+const token = import.meta.env.GITHUB_TOKEN as string | undefined;
+const stars = d.repo
+  ? await getStars(site.github.user, d.repo, { enabled: site.stars.fetch, timeoutMs: site.stars.timeoutMs, token })
+  : null;
+const status = d.status ?? starLabel(stars);
+const live = d.live === false ? null : (d.live ?? (d.repo ? liveUrl(d.repo) : null));
+const source = d.repo ? repoUrl(d.repo) : null;
+const no = String(index + 1).padStart(2, '0');
+const kind = d.kind.charAt(0).toUpperCase() + d.kind.slice(1);
+---
+
+<Base title={d.title} description={d.summary}>
+  <article class="cs">
+    <header class="container cs-head">
+      <p class="kicker mono muted">
+        <a href={`/#${entry.id}`} class="back">Index</a>
+        <span aria-hidden="true">/</span>
+        <span>{no}</span>
+        <span aria-hidden="true">/</span>
+        <span>{kind}</span>
+      </p>
+      <h1 class="cs-title">{d.title}</h1>
+      <p class="cs-lede">{d.summary}</p>
+    </header>
+
+    <div class="container">
+      <dl class="facts-strip mono">
+        <div>
+          <dt>Role</dt>
+          <dd>{d.role}</dd>
+        </div>
+        <div>
+          <dt>Stack</dt>
+          <dd>{d.stack.join(', ')}</dd>
+        </div>
+        <div>
+          <dt>Timeline</dt>
+          <dd>{d.timeline}</dd>
+        </div>
+        <div>
+          <dt>Status</dt>
+          <dd>{status}</dd>
+        </div>
+        <div>
+          <dt>Links</dt>
+          <dd class="facts-links">
+            {live && <a href={live}>Live ↗</a>}
+            {source && <a href={source}>Source ↗</a>}
+            {!live && !source && <span>Private</span>}
+          </dd>
+        </div>
+      </dl>
+    </div>
+
+    {
+      d.demo !== 'none' && (
+        <section class="demo-band" aria-label={`${d.title} live demo`}>
+          <div class="demo-band-inner">
+            <DemoMount demo={d.demo} label={d.demoLabel} title={d.title} load="visible" />
+          </div>
+        </section>
+      )
+    }
+
+    <div class="prose">
+      <Content />
+      <p class="end" aria-hidden="true"><span class="mark"></span></p>
+    </div>
+
+    <nav class="container next" aria-label="Next case study">
+      <a href={`/work/${next.id}`} class="next-link">
+        <span class="mono muted">Next</span>
+        <span class="next-title">{next.data.title}</span>
+        <span class="next-sum muted">{next.data.summary}</span>
+        <span class="arrow" aria-hidden="true">→</span>
+      </a>
+    </nav>
+  </article>
+</Base>
+
+<style>
+  .cs-head {
+    padding-block: clamp(40px, 6vw, 80px) 32px;
+  }
+
+  .kicker {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .back {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--fg);
+  }
+
+  .cs-title {
+    margin-top: 8px;
+    font-size: var(--text-title);
+    font-weight: 700;
+    line-height: var(--leading-tight);
+    letter-spacing: var(--tracking-name);
+    margin-left: -0.03em;
+  }
+
+  .cs-lede {
+    margin-top: 24px;
+    max-width: 34ch;
+    font-size: var(--text-lede);
+    line-height: 1.45;
+    text-wrap: pretty;
+  }
+
+  .facts-strip {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-block: 1px solid var(--fg);
+  }
+
+  .facts-strip > div {
+    padding: 12px 16px 14px 0;
+    border-bottom: 1px solid var(--rule);
+    min-width: 0;
+  }
+
+  .facts-strip dt {
+    color: var(--muted);
+  }
+
+  .facts-strip dd {
+    margin: 4px 0 0;
+    text-transform: none;
+    letter-spacing: 0.01em;
+    font-size: 0.8125rem;
+  }
+
+  .facts-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+  }
+
+  .facts-links a {
+    display: inline-block;
+    padding-block: 13px;
+    margin-block: -13px;
+  }
+
+  @media (min-width: 768px) {
+    .facts-strip {
+      grid-template-columns: 1.1fr 1.4fr 1.3fr 0.8fr 1fr;
+    }
+
+    .facts-strip > div {
+      border-bottom: 0;
+      padding-left: 16px;
+      border-left: 1px solid var(--rule);
+    }
+
+    .facts-strip > div:first-child {
+      padding-left: 0;
+      border-left: 0;
+    }
+  }
+
+  /* Full-bleed live demo */
+  .demo-band {
+    margin-top: clamp(40px, 6vw, 72px);
+    padding-block: clamp(24px, 5vw, 64px);
+    background: var(--surface);
+    border-block: 1px solid var(--rule);
+  }
+
+  .demo-band-inner {
+    max-width: 920px;
+    margin-inline: auto;
+    padding-inline: var(--page-pad);
+  }
+
+  /* 680px text column; .bleed children span the full width. */
+  .prose {
+    display: grid;
+    grid-template-columns:
+      [full-start] minmax(var(--page-pad), 1fr)
+      [content-start] minmax(0, var(--measure))
+      [content-end] minmax(var(--page-pad), 1fr)
+      [full-end];
+    padding-top: clamp(40px, 6vw, 72px);
+  }
+
+  .prose > :global(*) {
+    grid-column: content;
+  }
+
+  .prose :global(h2) {
+    margin-top: 56px;
+    margin-bottom: 16px;
+    font-size: var(--text-h2);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  .prose :global(h2:first-child) {
+    margin-top: 0;
+  }
+
+  .prose :global(p) {
+    margin-bottom: 20px;
+    text-wrap: pretty;
+  }
+
+  .prose :global(a) {
+    color: var(--accent);
+  }
+
+  .prose :global(figure.bleed) {
+    grid-column: full;
+    margin-block: 40px 56px;
+    padding-block: clamp(16px, 4vw, 48px);
+    background: var(--surface);
+    border-block: 1px solid var(--rule);
+  }
+
+  .prose :global(figure.bleed img) {
+    width: min(1200px, 100% - 2 * var(--page-pad));
+    height: auto;
+    margin-inline: auto;
+  }
+
+  .prose :global(figure.bleed figcaption) {
+    width: min(var(--measure), 100% - 2 * var(--page-pad));
+    margin: 16px auto 0;
+    font-size: var(--text-small);
+    color: var(--muted);
+  }
+
+  .end {
+    margin-top: 8px;
+  }
+
+  .end .mark {
+    width: 0.62em;
+    height: 0.62em;
+  }
+
+  /* Next project */
+  .next {
+    margin-top: 72px;
+  }
+
+  .next-link {
+    position: relative;
+    display: grid;
+    gap: 4px;
+    padding: 24px 40px 24px 0;
+    border-block: 1px solid var(--fg);
+    text-decoration: none;
+  }
+
+  .next-title {
+    font-size: var(--text-h2);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  .next-sum {
+    max-width: 60ch;
+  }
+
+  .next-link .arrow {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    font-size: 1.5rem;
+    transform: translateY(-50%);
+    transition: transform var(--dur-fast) var(--ease);
+  }
+
+  .next-link:hover .arrow {
+    transform: translate(4px, -50%);
+  }
+
+  .next-link:hover .next-title {
+    color: var(--accent);
+  }
+</style>

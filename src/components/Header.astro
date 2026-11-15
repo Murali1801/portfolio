@@ -1,0 +1,130 @@
+---
+import { site } from '../../site.config';
+
+const path = Astro.url.pathname;
+const onHome = path === '/' || path === '';
+---
+
+<header class="site-header">
+  <div class="container bar">
+    <a class="brand" href="/" aria-label={`${site.shortName}, home`}>
+      <span class="mark" aria-hidden="true"></span>
+      <span class="brand-name">{site.shortName}</span>
+    </a>
+    <nav aria-label="Primary">
+      <ul class="nav mono">
+        <li><a href={onHome ? '#work' : '/#work'}>Work</a></li>
+        <li><a href={onHome ? '#about' : '/#about'}>About</a></li>
+        <li>
+          <button class="theme-toggle" type="button" aria-label="Switch theme" data-theme-toggle>
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+              <circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.5"></circle>
+              <path d="M8 1.5a6.5 6.5 0 0 1 0 13z" fill="currentColor"></path>
+            </svg>
+            <span class="theme-label" aria-hidden="true">Theme</span>
+          </button>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<script>
+  const root = document.documentElement;
+  const media = window.matchMedia('(prefers-color-scheme: dark)');
+  const current = () => (root.dataset.theme as 'light' | 'dark' | undefined) ?? (media.matches ? 'dark' : 'light');
+
+  function label() {
+    const next = current() === 'dark' ? 'light' : 'dark';
+    document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]').forEach((b) => {
+      b.setAttribute('aria-label', `Switch to ${next} theme`);
+    });
+  }
+
+  document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]').forEach((b) => {
+    b.addEventListener('click', () => {
+      const next = current() === 'dark' ? 'light' : 'dark';
+      root.dataset.theme = next;
+      try {
+        localStorage.setItem('theme', next);
+      } catch {}
+      label();
+    });
+  });
+  media.addEventListener('change', label);
+  label();
+</script>
+
+<style>
+  .site-header {
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 64px;
+    gap: 16px;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1.0625rem;
+    letter-spacing: -0.01em;
+  }
+
+  .brand .mark {
+    width: 0.7em;
+    height: 0.7em;
+  }
+
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: clamp(4px, 2vw, 24px);
+  }
+
+  .nav a,
+  .theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    min-width: 44px;
+    justify-content: center;
+    padding-inline: 6px;
+    text-decoration: none;
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+  }
+
+  .theme-toggle {
+    border: 0;
+    background: none;
+  }
+
+  .theme-toggle svg {
+    transition: transform var(--dur) var(--ease);
+  }
+
+  :global(:root[data-theme='dark']) .theme-toggle svg {
+    transform: rotate(180deg);
+  }
+
+  .theme-toggle:hover {
+    color: var(--accent);
+  }
+
+  @media (max-width: 479px) {
+    .theme-label {
+      display: none;
+    }
+  }
+</style>

@@ -7,7 +7,7 @@
 
 **A case-study-first portfolio template for developers who ship things. Astro, zero JS by default.**
 
-Live demo: https://portfolio.vercel.app <!-- TODO: replace after the first deploy -->
+Live demo: https://murali1801.vercel.app
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Murali1801/portfolio)
 [![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/Murali1801/portfolio)
@@ -46,7 +46,7 @@ stack: [TypeScript, Vite, OKLCH]
 year: 2026
 summary: One line for the index and the case-study lede.
 repo: tonal           # optional: star count + source link
-live: https://...     # optional: defaults to https://<repo>.vercel.app, false hides it
+live: https://...     # optional: defaults to liveUrl(repo) in site.config.ts, false hides it
 role: Design and engineering
 timeline: November 2026, in progress
 demo: tonal           # optional: a live demo from src/demos, or none

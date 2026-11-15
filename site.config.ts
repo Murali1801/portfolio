@@ -6,7 +6,7 @@
 
 export const site = {
   /** Production URL, used for the sitemap, canonical links and OG tags. */
-  url: 'https://portfolio.vercel.app', // TODO: replace with the real deploy URL
+  url: 'https://murali1801.vercel.app',
 
   /** Full name: the large heading on the home page. */
   name: 'Muralidhar Acharya',
@@ -67,7 +67,8 @@ export const site = {
 
 /** Live demo URL for a project repo. Frontmatter `live` overrides it. */
 export function liveUrl(repo: string): string {
-  return `https://${repo}.vercel.app`; // TODO: placeholder until each project is deployed
+  if (repo === site.github.repo) return site.url;
+  return `https://${repo}-murali.vercel.app`;
 }
 
 export function repoUrl(repo: string): string {

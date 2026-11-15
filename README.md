@@ -3,6 +3,8 @@
   <img src="docs/screenshot-light.png" alt="The portfolio home page: a large name, a local clock and a project index table with the first row expanded into a live colour-ramp demo.">
 </picture>
 
+[![Tests](https://github.com/Murali1801/portfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/Murali1801/portfolio/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-16150F)](LICENSE)
+
 # Portfolio
 
 **A case-study-first portfolio template for developers who ship things. Astro, zero JS by default.**

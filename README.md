@@ -96,7 +96,7 @@ src/lib/*.ts                pure logic (colour maths, spring physics, settle-up,
 src/pages/media/[file].ts   case-study figures drawn at build time from src/lib
 ```
 
-Astro renders every page to static HTML. The only scripts on a page are small ones for the clock, the theme toggle, the copy-email button, spec mode and the row toggle. Demo modules load through dynamic `import()` when they are needed. To add a demo, write `src/demos/<name>.ts` exporting `mount(el)`, register it in `src/demos/index.ts` and add the name to `DEMOS` in `src/content.config.ts`.
+Astro renders every page to static HTML. The only scripts on a page are small ones for the clock, the theme toggle, the optional copy-email button, spec mode and the row toggle. Demo modules load through dynamic `import()` when they are needed. To add a demo, write `src/demos/<name>.ts` exporting `mount(el)`, register it in `src/demos/index.ts` and add the name to `DEMOS` in `src/content.config.ts`.
 
 Star counts come from `https://api.github.com/repos/<user>/<repo>` with a 4 second timeout and a per-build cache. Any failure resolves to `null`, which prints as `new`.
 

@@ -13,12 +13,12 @@ const github = `https://github.com/${site.github.user}`;
       </p>
       <ul class="links mono">
         <li><a class="link" href={github} rel="me">GitHub <span class="arrow-ne" aria-hidden="true">↗</span></a></li>
-        <li>
+        {site.email && <li>
           <a class="link" href={`mailto:${site.email}`} data-copy-email={site.email}>
             <span data-copy-label>Copy email</span>
           </a>
           <span class="sr-only" role="status" aria-live="polite" data-copy-status></span>
-        </li>
+        </li>}
         <li><a class="link" href={repoUrl(site.github.repo)}>Source <span class="arrow-ne" aria-hidden="true">↗</span></a></li>
         <li>
           <button class="link spec-btn" type="button" aria-pressed="false" data-spec-toggle>

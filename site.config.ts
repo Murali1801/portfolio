@@ -27,8 +27,8 @@ export const site = {
   timeZone: 'Asia/Kolkata',
   timeZoneLabel: 'IST',
 
-  /** Copy-email button in the footer. */
-  email: 'hello@example.com', // TODO: replace with a real address
+  /** Copy-email button in the footer. Leave empty to hide it. */
+  email: '' as string,
 
   github: {
     user: 'Murali1801',
